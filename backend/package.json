@@ -1,0 +1,28 @@
+{
+  "name": "trailhead-backend",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "wrangler deploy --dry-run",
+    "deploy": "wrangler deploy",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate deploy",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.7.0",
+    "@prisma/adapter-neon": "^6.7.0",
+    "bcryptjs": "^2.4.3",
+    "hono": "^4.7.10",
+    "zod": "^3.24.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250430.0",
+    "@types/bcryptjs": "^2.4.6",
+    "prisma": "^6.7.0",
+    "typescript": "^5.8.3",
+    "wrangler": "^4.14.4"
+  }
+}

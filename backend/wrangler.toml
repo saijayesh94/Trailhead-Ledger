@@ -1,0 +1,19 @@
+name = "trailhead-api"
+main = "src/index.ts"
+compatibility_date = "2025-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "development"
+
+# Secrets (set via: wrangler secret put SECRET_NAME)
+# DATABASE_URL     — Neon PostgreSQL connection string
+# JWT_SECRET       — random 64-char secret for signing JWTs
+
+# Uncomment if you add file storage later
+# [[r2_buckets]]
+# binding = "BUCKET"
+# bucket_name = "trailhead-bucket"
+
+[build]
+command = "npm run db:generate"
