@@ -3,11 +3,11 @@ import { z } from 'zod'
 export const createTransactionSchema = z.object({
   amount: z.number().positive(),
   type: z.enum(['income', 'expense', 'received']),
-  description: z.string().max(500).optional(),
-  date: z.string().datetime(),
-  accountId: z.string().cuid(),
-  ownerId: z.string().cuid(),
-  categoryId: z.string().cuid(),
+  description: z.string().trim().max(500).optional(),
+  date: z.coerce.date(),
+  accountId: z.string().min(1),
+  ownerId: z.string().min(1),
+  categoryId: z.string().min(1),
 })
 
 export const updateTransactionSchema = createTransactionSchema.partial()
