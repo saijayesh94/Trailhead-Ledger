@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { cn } from "@/lib/utils"
 import { accountsApi } from "@/services/accounts"
 import { getErrorMessage } from "@/services/api"
 import type { Account } from "@/types/account"
@@ -101,7 +102,7 @@ export default function AccountsPanel() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
         <CardTitle>Accounts</CardTitle>
         <Button size="sm" onClick={() => setIsAdding((v) => !v)}>
           {isAdding ? <X /> : <Plus />}
@@ -112,7 +113,7 @@ export default function AccountsPanel() {
         {error && <p className="text-sm text-destructive">{error}</p>}
 
         {isAdding && (
-          <div className="grid grid-cols-2 gap-3 rounded-md border p-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-md border p-3">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="new-account-name">Name</Label>
               <Input
@@ -154,7 +155,7 @@ export default function AccountsPanel() {
                 maxLength={3}
               />
             </div>
-            <Button onClick={handleAdd} className="col-span-2">
+            <Button onClick={handleAdd} className="col-span-1 sm:col-span-2">
               Save
             </Button>
           </div>
@@ -167,11 +168,11 @@ export default function AccountsPanel() {
         {accounts.map((account) => (
           <div
             key={account.id}
-            className="flex items-center justify-between gap-2 rounded-md border p-3"
+            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-md border p-3"
           >
             {editingId === account.id ? (
               <>
-                <div className="flex items-center gap-2 flex-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:flex-1">
                   <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Name" />
                   <Input
                     value={editBankName}
@@ -196,19 +197,19 @@ export default function AccountsPanel() {
               </>
             ) : (
               <>
-                <div className="flex items-center gap-2">
-                  <span className={account.isActive ? "" : "text-muted-foreground line-through"}>
+                <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                  <span className={cn("truncate", account.isActive ? "" : "text-muted-foreground line-through")}>
                     {account.name}
                   </span>
                   {account.bankName && (
-                    <span className="text-sm text-muted-foreground">{account.bankName}</span>
+                    <span className="text-sm text-muted-foreground truncate">{account.bankName}</span>
                   )}
                   <Badge variant="outline">{account.type}</Badge>
                   <Badge variant="outline">{account.currency}</Badge>
                   {account.isDefault && <Badge>Default</Badge>}
                   {!account.isActive && <Badge variant="secondary">Inactive</Badge>}
                 </div>
-                <div className="flex gap-1">
+                <div className="flex gap-1 self-end sm:self-auto">
                   <Button size="sm" variant="ghost" onClick={() => handleToggleActive(account)}>
                     {account.isActive ? "Deactivate" : "Activate"}
                   </Button>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { cn } from "@/lib/utils"
 import { ownersApi } from "@/services/owners"
 import { getErrorMessage } from "@/services/api"
 import type { Owner } from "@/types/owner"
@@ -85,7 +86,7 @@ export default function OwnersPanel() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
         <CardTitle>Owners</CardTitle>
         <Button size="sm" onClick={() => setIsAdding((v) => !v)}>
           {isAdding ? <X /> : <Plus />}
@@ -96,8 +97,8 @@ export default function OwnersPanel() {
         {error && <p className="text-sm text-destructive">{error}</p>}
 
         {isAdding && (
-          <div className="flex items-end gap-2 rounded-md border p-3">
-            <div className="flex flex-col gap-1.5 flex-1">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-2 rounded-md border p-3">
+            <div className="flex flex-col gap-1.5 sm:flex-1">
               <Label htmlFor="new-owner-name">Name</Label>
               <Input
                 id="new-owner-name"
@@ -127,16 +128,16 @@ export default function OwnersPanel() {
         {owners.map((owner) => (
           <div
             key={owner.id}
-            className="flex items-center justify-between gap-2 rounded-md border p-3"
+            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-md border p-3"
           >
             {editingId === owner.id ? (
               <>
-                <div className="flex items-center gap-2 flex-1">
+                <div className="flex items-center gap-2 sm:flex-1">
                   <input
                     type="color"
                     value={editColor}
                     onChange={(e) => setEditColor(e.target.value)}
-                    className="h-9 w-12 rounded-md border border-input"
+                    className="h-9 w-12 shrink-0 rounded-md border border-input"
                   />
                   <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
                 </div>
@@ -151,18 +152,18 @@ export default function OwnersPanel() {
               </>
             ) : (
               <>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-wrap">
                   <span
-                    className="size-4 rounded-full border"
+                    className="size-4 shrink-0 rounded-full border"
                     style={{ backgroundColor: owner.color ?? "#999" }}
                   />
-                  <span className={owner.isActive ? "" : "text-muted-foreground line-through"}>
+                  <span className={cn("truncate", owner.isActive ? "" : "text-muted-foreground line-through")}>
                     {owner.name}
                   </span>
                   {owner.isDefault && <Badge>Default</Badge>}
                   {!owner.isActive && <Badge variant="secondary">Inactive</Badge>}
                 </div>
-                <div className="flex gap-1">
+                <div className="flex gap-1 self-end sm:self-auto">
                   <Button size="sm" variant="ghost" onClick={() => handleToggleActive(owner)}>
                     {owner.isActive ? "Deactivate" : "Activate"}
                   </Button>

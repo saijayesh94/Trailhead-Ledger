@@ -89,7 +89,7 @@ export default function CategoriesPanel() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
         <CardTitle>Categories</CardTitle>
         <Button size="sm" onClick={() => setIsAdding((v) => !v)}>
           {isAdding ? <X /> : <Plus />}
@@ -100,8 +100,8 @@ export default function CategoriesPanel() {
         {error && <p className="text-sm text-destructive">{error}</p>}
 
         {isAdding && (
-          <div className="flex items-end gap-2 rounded-md border p-3">
-            <div className="flex flex-col gap-1.5 flex-1">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-2 rounded-md border p-3">
+            <div className="flex flex-col gap-1.5 sm:flex-1">
               <Label htmlFor="new-category-name">Name</Label>
               <Input
                 id="new-category-name"
@@ -133,11 +133,11 @@ export default function CategoriesPanel() {
         {categories.map((category) => (
           <div
             key={category.id}
-            className="flex items-center justify-between gap-2 rounded-md border p-3"
+            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-md border p-3"
           >
             {editingId === category.id ? (
               <>
-                <div className="flex items-center gap-2 flex-1">
+                <div className="flex items-center gap-2 sm:flex-1">
                   <select
                     className={selectClass}
                     value={editType}
@@ -159,8 +159,8 @@ export default function CategoriesPanel() {
               </>
             ) : (
               <>
-                <div className="flex items-center gap-2">
-                  <span className={category.isActive ? "" : "text-muted-foreground line-through"}>
+                <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                  <span className={cn("truncate", category.isActive ? "" : "text-muted-foreground line-through")}>
                     {category.name}
                   </span>
                   <Badge
@@ -174,7 +174,7 @@ export default function CategoriesPanel() {
                   {category.isDefault && <Badge>Default</Badge>}
                   {!category.isActive && <Badge variant="secondary">Inactive</Badge>}
                 </div>
-                <div className="flex gap-1">
+                <div className="flex gap-1 self-end sm:self-auto">
                   <Button size="sm" variant="ghost" onClick={() => handleToggleActive(category)}>
                     {category.isActive ? "Deactivate" : "Activate"}
                   </Button>

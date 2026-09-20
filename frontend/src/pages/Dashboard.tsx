@@ -49,18 +49,20 @@ export default function Dashboard() {
           <CardTitle className="text-sm text-muted-foreground font-normal">Total Balance</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <p className="text-4xl font-semibold">{formatCurrency(data.totalBalance, data.currency)}</p>
+          <p className="text-3xl sm:text-4xl font-semibold break-words">
+            {formatCurrency(data.totalBalance, data.currency)}
+          </p>
           <div className="flex flex-col gap-1.5 border-t pt-4">
             {data.owners.map((owner) => (
-              <div key={owner.id} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
+              <div key={owner.id} className="flex items-center justify-between gap-2 text-sm">
+                <div className="flex items-center gap-2 min-w-0">
                   <span
-                    className="size-2.5 rounded-full"
+                    className="size-2.5 shrink-0 rounded-full"
                     style={{ backgroundColor: owner.color ?? "#999" }}
                   />
-                  <span>{owner.name}'s Money</span>
+                  <span className="truncate">{owner.name}'s Money</span>
                 </div>
-                <span className="font-medium">{formatCurrency(owner.balance, data.currency)}</span>
+                <span className="font-medium shrink-0">{formatCurrency(owner.balance, data.currency)}</span>
               </div>
             ))}
           </div>
@@ -74,9 +76,9 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
             {data.accounts.map((account) => (
-              <div key={account.id} className="flex items-center justify-between">
-                <span>{account.name}</span>
-                <span className="font-medium">{formatCurrency(account.balance, account.currency)}</span>
+              <div key={account.id} className="flex items-center justify-between gap-2">
+                <span className="truncate">{account.name}</span>
+                <span className="font-medium shrink-0">{formatCurrency(account.balance, account.currency)}</span>
               </div>
             ))}
           </CardContent>
@@ -118,9 +120,9 @@ export default function Dashboard() {
             <p className="text-sm text-muted-foreground">No expenses recorded this month yet.</p>
           )}
           {data.spendingByCategory.map((cat) => (
-            <div key={cat.categoryId} className="flex items-center justify-between">
-              <span>{cat.name}</span>
-              <span className="font-medium">{formatCurrency(cat.amount, data.currency)}</span>
+            <div key={cat.categoryId} className="flex items-center justify-between gap-2">
+              <span className="truncate">{cat.name}</span>
+              <span className="font-medium shrink-0">{formatCurrency(cat.amount, data.currency)}</span>
             </div>
           ))}
         </CardContent>

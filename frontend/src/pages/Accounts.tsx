@@ -32,7 +32,7 @@ export default function Accounts() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Accounts</h1>
         <Button size="sm" variant="outline" asChild>
           <Link to="/settings">Manage accounts</Link>
@@ -60,7 +60,9 @@ export default function Accounts() {
             <CardTitle className="text-sm text-muted-foreground font-normal">Total Balance</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{formatCurrency(totalBalance, primaryCurrency)}</p>
+            <p className="text-2xl sm:text-3xl font-semibold break-words">
+              {formatCurrency(totalBalance, primaryCurrency)}
+            </p>
           </CardContent>
         </Card>
       )}
@@ -68,20 +70,20 @@ export default function Accounts() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {accounts.map((account) => (
           <Card key={account.id}>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>{account.name}</CardTitle>
+            <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
+                <CardTitle className="truncate">{account.name}</CardTitle>
                 {account.bankName && (
-                  <p className="text-sm text-muted-foreground">{account.bankName}</p>
+                  <p className="text-sm text-muted-foreground truncate">{account.bankName}</p>
                 )}
               </div>
-              <div className="flex gap-1">
+              <div className="flex flex-wrap gap-1">
                 <Badge variant="outline">{account.type}</Badge>
                 {!account.isActive && <Badge variant="secondary">Inactive</Badge>}
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-semibold">
+              <p className="text-xl sm:text-2xl font-semibold break-words">
                 {formatCurrency(account.balance ?? "0", account.currency)}
               </p>
             </CardContent>

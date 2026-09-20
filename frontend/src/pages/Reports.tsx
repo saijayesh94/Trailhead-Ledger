@@ -4,6 +4,7 @@ import { ownersApi } from "@/services/owners"
 import { getErrorMessage } from "@/services/api"
 import { formatCurrency } from "@/lib/currency"
 import { toISODate } from "@/lib/date"
+import { cn } from "@/lib/utils"
 import type { Statement } from "@/types/report"
 import type { Owner } from "@/types/owner"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -102,7 +103,7 @@ export default function Reports() {
               </Button>
             ))}
           </div>
-          <div className="flex items-end gap-3">
+          <div className="flex flex-wrap items-end gap-3">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="report-from">From</Label>
               <Input
@@ -150,9 +151,9 @@ export default function Reports() {
               )}
 
               {statement.lines.map((line) => (
-                <div key={line.categoryId} className="flex items-center justify-between">
-                  <span>{line.name}</span>
-                  <span className={line.type === "expense" ? "text-red-600" : "text-green-600"}>
+                <div key={line.categoryId} className="flex items-center justify-between gap-2">
+                  <span className="truncate">{line.name}</span>
+                  <span className={cn("shrink-0", line.type === "expense" ? "text-red-600" : "text-green-600")}>
                     {Number(line.amount) >= 0 ? "+" : ""}
                     {formatCurrency(line.amount, "INR")}
                   </span>
@@ -193,7 +194,7 @@ export default function Reports() {
             </Card>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild>
               <a href={getExportUrl(range.from, range.to)}>
                 <Download /> Export This Range (CSV)

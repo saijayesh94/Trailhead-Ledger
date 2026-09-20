@@ -61,7 +61,7 @@ export function TransferForm({ accounts, owners, initial, onSubmit, onCancel }: 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-2 sm:grid-cols-3 gap-3 rounded-md border p-3">
+    <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 rounded-md border p-3">
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="transfer-amount">Amount</Label>
         <Input
@@ -117,7 +117,7 @@ export function TransferForm({ accounts, owners, initial, onSubmit, onCancel }: 
         <Label htmlFor="transfer-date">Date</Label>
         <Input id="transfer-date" type="date" value={values.date} onChange={(e) => update("date", e.target.value)} />
       </div>
-      <div className="col-span-2 sm:col-span-3 flex flex-col gap-1.5">
+      <div className="col-span-1 sm:col-span-2 md:col-span-3 flex flex-col gap-1.5">
         <Label htmlFor="transfer-description">Description</Label>
         <Input
           id="transfer-description"
@@ -126,8 +126,10 @@ export function TransferForm({ accounts, owners, initial, onSubmit, onCancel }: 
           placeholder="Optional"
         />
       </div>
-      {error && <p className="col-span-2 sm:col-span-3 text-sm text-destructive">{error}</p>}
-      <div className="col-span-2 sm:col-span-3 flex gap-2">
+      {error && (
+        <p className="col-span-1 sm:col-span-2 md:col-span-3 text-sm text-destructive">{error}</p>
+      )}
+      <div className="col-span-1 sm:col-span-2 md:col-span-3 flex gap-2">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Saving..." : "Transfer"}
         </Button>

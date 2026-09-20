@@ -132,10 +132,10 @@ export default function Transactions() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Transactions</h1>
         {hasMasterData && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               size="sm"
               variant="outline"
@@ -210,20 +210,24 @@ export default function Transactions() {
             const t = entry.data
             return (
               <Card key={`transfer-${t.id}`}>
-                <CardContent className="flex items-center justify-between py-3">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="outline">Transfer</Badge>
-                    <div>
-                      <p className="font-medium">
+                <CardContent className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Badge variant="outline" className="shrink-0">
+                      Transfer
+                    </Badge>
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">
                         {t.fromAccount.name} → {t.toAccount.name}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-muted-foreground truncate">
                         {new Date(t.date).toLocaleDateString()} · {t.owner.name}
                         {t.description ? ` · ${t.description}` : ""}
                       </p>
                     </div>
                   </div>
-                  <p className="font-semibold">{formatCurrency(t.amount, t.fromAccount.currency)}</p>
+                  <p className="font-semibold shrink-0 sm:text-right">
+                    {formatCurrency(t.amount, t.fromAccount.currency)}
+                  </p>
                 </CardContent>
               </Card>
             )
@@ -257,27 +261,31 @@ export default function Transactions() {
           const isExpense = t.type === "expense"
           return (
             <Card key={`txn-${t.id}`}>
-              <CardContent className="flex items-center justify-between py-3">
-                <div className="flex items-center gap-3">
-                  <Badge variant="outline">{t.category.name}</Badge>
-                  <div>
-                    <p className="font-medium">{t.description || t.category.name}</p>
-                    <p className="text-sm text-muted-foreground">
+              <CardContent className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Badge variant="outline" className="shrink-0">
+                    {t.category.name}
+                  </Badge>
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{t.description || t.category.name}</p>
+                    <p className="text-sm text-muted-foreground truncate">
                       {new Date(t.date).toLocaleDateString()} · {t.owner.name} · {t.account.name}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
                   <p className={isExpense ? "font-semibold text-red-600" : "font-semibold text-green-600"}>
                     {isExpense ? "-" : "+"}
                     {formatCurrency(t.amount, t.account.currency)}
                   </p>
-                  <Button size="icon" variant="ghost" onClick={() => setEditingId(t.id)}>
-                    <Pencil />
-                  </Button>
-                  <Button size="icon" variant="ghost" onClick={() => handleDeleteTransaction(t.id)}>
-                    <Trash2 />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button size="icon" variant="ghost" onClick={() => setEditingId(t.id)}>
+                      <Pencil />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => handleDeleteTransaction(t.id)}>
+                      <Trash2 />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
