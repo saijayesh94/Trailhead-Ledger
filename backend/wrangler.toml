@@ -4,7 +4,7 @@ compatibility_date = "2025-09-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-ENVIRONMENT = "development"
+ENVIRONMENT = "production"
 
 # Secrets (set via: wrangler secret put SECRET_NAME)
 # DATABASE_URL     — Neon PostgreSQL connection string
