@@ -7,6 +7,7 @@ import { categoriesApi } from "@/services/categories"
 import { getErrorMessage } from "@/services/api"
 import { formatCurrency } from "@/lib/currency"
 import { getLastTransactionDefaults, saveLastTransactionDefaults } from "@/lib/transactionDefaults"
+import { toISODate } from "@/lib/date"
 import type { Transaction } from "@/types/transaction"
 import type { Transfer } from "@/types/transfer"
 import type { Account } from "@/types/account"
@@ -18,10 +19,6 @@ import { Badge } from "@/components/ui/badge"
 import { TransactionForm, type TransactionFormValues } from "@/components/transactions/TransactionForm"
 import { TransferForm, type TransferFormValues } from "@/components/transactions/TransferForm"
 import { Plus, ArrowLeftRight, Pencil, Trash2, X } from "lucide-react"
-
-function todayISO() {
-  return new Date().toISOString().slice(0, 10)
-}
 
 type LedgerEntry =
   | { kind: "transaction"; date: string; data: Transaction }
@@ -77,7 +74,7 @@ export default function Transactions() {
       ownerId: last.ownerId ?? meOwner?.id ?? owners.find((o) => o.isActive)?.id ?? "",
       categoryId: "",
       description: "",
-      date: todayISO(),
+      date: toISODate(),
     }
   }
 
@@ -196,7 +193,7 @@ export default function Transactions() {
             toAccountId: "",
             ownerId: owners.find((o) => o.name === "Me")?.id ?? "",
             description: "",
-            date: todayISO(),
+            date: toISODate(),
           }}
           onSubmit={handleCreateTransfer}
           onCancel={() => setIsAddingTransfer(false)}
