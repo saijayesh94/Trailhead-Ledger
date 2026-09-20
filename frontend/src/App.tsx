@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from '@/context/AuthContext'
 import { RequireAuth, RedirectIfAuthed } from '@/components/RequireAuth'
+import AppLayout from '@/components/AppLayout'
 
 // Pages (to be built out)
 import Dashboard from '@/pages/Dashboard'
@@ -34,11 +35,13 @@ function App() {
           />
 
           <Route element={<RequireAuth />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/transactions" element={<Transactions />} />
-            <Route path="/accounts" element={<Accounts />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route element={<AppLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/transactions" element={<Transactions />} />
+              <Route path="/accounts" element={<Accounts />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
           </Route>
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
