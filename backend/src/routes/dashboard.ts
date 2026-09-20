@@ -1,8 +1,10 @@
 import { Hono } from 'hono'
-import type { Env } from '../types'
+import { authMiddleware } from '../middleware/auth'
+import { getDashboard } from '../controllers/dashboard.controller'
+import type { Env, Variables } from '../types'
 
-const dashboard = new Hono<{ Bindings: Env }>()
+const dashboard = new Hono<{ Bindings: Env; Variables: Variables }>()
 
-// TODO: implement dashboard routes
+dashboard.get('/', authMiddleware, getDashboard)
 
 export default dashboard
