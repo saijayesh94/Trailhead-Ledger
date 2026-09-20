@@ -1,16 +1,29 @@
 import type { Context } from 'hono'
 import { Prisma } from '@prisma/client'
 import type { CreateAccountInput, UpdateAccountInput } from '../validators/account'
+import { computeAccountBalances } from '../lib/balance'
 import type { Env, Variables } from '../types'
 
 type AppContext = Context<{ Bindings: Env; Variables: Variables }>
 
 export async function listAccounts(c: AppContext) {
-  const accounts = await c.get('db').account.findMany({
-    where: { userId: c.get('userId') },
-    orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+  const db = c.get('db')
+  const userId = c.get('userId')
+
+  const [accounts, balances] = await Promise.all([
+    db.account.findMany({
+      where: { userId },
+      orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+    }),
+    computeAccountBalances(db, userId),
+  ])
+
+  return c.json({
+    accounts: accounts.map((account) => ({
+      ...account,
+      balance: (balances.get(account.id) ?? new Prisma.Decimal(0)).toFixed(2),
+    })),
   })
-  return c.json({ accounts })
 }
 
 export async function createAccount(c: AppContext) {

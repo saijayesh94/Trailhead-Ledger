@@ -6,6 +6,8 @@ export interface Account {
   currency: string
   isDefault: boolean
   isActive: boolean
+  // Only present on GET /api/accounts (list) — computed from transaction history.
+  balance?: string
 }
 
 export interface AccountInput {
