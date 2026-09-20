@@ -1,4 +1,4 @@
-name = "trailhead-api"
+name = "trailhead-ledger-api"
 main = "src/index.ts"
 compatibility_date = "2025-09-01"
 compatibility_flags = ["nodejs_compat"]
