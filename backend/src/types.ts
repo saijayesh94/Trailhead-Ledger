@@ -10,4 +10,5 @@ export type Env = {
 export type Variables = {
   db: PrismaClient
   userId: string
+  validatedBody: unknown
 }

@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import { Prisma } from '@prisma/client'
-import { createOwnerSchema, updateOwnerSchema } from '../validators/owner'
+import type { CreateOwnerInput, UpdateOwnerInput } from '../validators/owner'
 import type { Env, Variables } from '../types'
 
 type AppContext = Context<{ Bindings: Env; Variables: Variables }>
@@ -14,15 +14,11 @@ export async function listOwners(c: AppContext) {
 }
 
 export async function createOwner(c: AppContext) {
-  const body = await c.req.json().catch(() => null)
-  const parsed = createOwnerSchema.safeParse(body)
-  if (!parsed.success) {
-    return c.json({ error: 'Invalid input', details: parsed.error.flatten() }, 400)
-  }
+  const body = c.get('validatedBody') as CreateOwnerInput
 
   try {
     const owner = await c.get('db').owner.create({
-      data: { ...parsed.data, userId: c.get('userId') },
+      data: { ...body, userId: c.get('userId') },
     })
     return c.json({ owner }, 201)
   } catch (err) {
@@ -35,18 +31,14 @@ export async function createOwner(c: AppContext) {
 
 export async function updateOwner(c: AppContext) {
   const id = c.req.param('id')
-  const body = await c.req.json().catch(() => null)
-  const parsed = updateOwnerSchema.safeParse(body)
-  if (!parsed.success) {
-    return c.json({ error: 'Invalid input', details: parsed.error.flatten() }, 400)
-  }
+  const body = c.get('validatedBody') as UpdateOwnerInput
 
   const db = c.get('db')
   const existing = await db.owner.findFirst({ where: { id, userId: c.get('userId') } })
   if (!existing) return c.json({ error: 'Owner not found' }, 404)
 
   try {
-    const owner = await db.owner.update({ where: { id }, data: parsed.data })
+    const owner = await db.owner.update({ where: { id }, data: body })
     return c.json({ owner })
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {

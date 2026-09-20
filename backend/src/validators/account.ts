@@ -14,3 +14,6 @@ export const updateAccountSchema = z.object({
   currency: z.string().trim().length(3).toUpperCase().optional(),
   isActive: z.boolean().optional(),
 })
+
+export type CreateAccountInput = z.infer<typeof createAccountSchema>
+export type UpdateAccountInput = z.infer<typeof updateAccountSchema>

@@ -12,3 +12,6 @@ export const updateOwnerSchema = z.object({
   color: hexColor.optional(),
   isActive: z.boolean().optional(),
 })
+
+export type CreateOwnerInput = z.infer<typeof createOwnerSchema>
+export type UpdateOwnerInput = z.infer<typeof updateOwnerSchema>

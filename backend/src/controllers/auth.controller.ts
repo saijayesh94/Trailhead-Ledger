@@ -1,7 +1,7 @@
 import type { Context } from 'hono'
 import { getCookie } from 'hono/cookie'
 import { Prisma } from '@prisma/client'
-import { loginSchema, registerSchema } from '../validators/auth'
+import type { LoginInput, RegisterInput } from '../validators/auth'
 import { hashPassword, verifyPassword } from '../lib/password'
 import { createSession } from '../lib/session'
 import { SESSION_COOKIE, setSessionCookie, clearSessionCookie } from '../lib/cookies'
@@ -15,15 +15,10 @@ function toPublicUser(user: { id: string; name: string; email: string }) {
 }
 
 export async function registerUser(c: AppContext) {
-  const body = await c.req.json().catch(() => null)
-  const parsed = registerSchema.safeParse(body)
-  if (!parsed.success) {
-    return c.json({ error: 'Invalid input', details: parsed.error.flatten() }, 400)
-  }
-
-  const name = parsed.data.name.trim()
-  const email = parsed.data.email.trim().toLowerCase()
-  const { password } = parsed.data
+  const body = c.get('validatedBody') as RegisterInput
+  const name = body.name.trim()
+  const email = body.email.trim().toLowerCase()
+  const { password } = body
   const db = c.get('db')
 
   const existing = await db.user.findUnique({ where: { email } })
@@ -35,21 +30,22 @@ export async function registerUser(c: AppContext) {
 
   let user
   try {
-    user = await db.user.create({
-      data: {
-        name,
-        email,
-        passwordHash,
-        owners: { create: DEFAULT_OWNERS.map((o) => ({ ...o, isDefault: true })) },
-        categories: { create: DEFAULT_CATEGORIES.map((cat) => ({ ...cat, isDefault: true })) },
-      },
-    })
+    // A plain create, not a nested write or createMany — both of those get
+    // wrapped in an interactive transaction by Prisma's query engine, which
+    // the fast HTTP-based db adapter can't do. Individual creates can run
+    // concurrently instead since each is just one INSERT statement.
+    user = await db.user.create({ data: { name, email, passwordHash } })
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
       return c.json({ error: 'An account with this email already exists' }, 409)
     }
     throw err
   }
+
+  await Promise.all([
+    ...DEFAULT_OWNERS.map((o) => db.owner.create({ data: { ...o, userId: user.id, isDefault: true } })),
+    ...DEFAULT_CATEGORIES.map((cat) => db.category.create({ data: { ...cat, userId: user.id, isDefault: true } })),
+  ])
 
   const token = await createSession(db, user.id, c.env.JWT_SECRET)
   setSessionCookie(c, token)
@@ -58,14 +54,9 @@ export async function registerUser(c: AppContext) {
 }
 
 export async function loginUser(c: AppContext) {
-  const body = await c.req.json().catch(() => null)
-  const parsed = loginSchema.safeParse(body)
-  if (!parsed.success) {
-    return c.json({ error: 'Invalid input', details: parsed.error.flatten() }, 400)
-  }
-
-  const email = parsed.data.email.trim().toLowerCase()
-  const { password } = parsed.data
+  const body = c.get('validatedBody') as LoginInput
+  const email = body.email.trim().toLowerCase()
+  const { password } = body
   const db = c.get('db')
 
   const user = await db.user.findUnique({ where: { email } })
