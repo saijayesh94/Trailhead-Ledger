@@ -1,7 +1,7 @@
 import type { Context } from 'hono'
-import { Prisma } from '@prisma/client'
 import type { CreateOwnerInput, UpdateOwnerInput } from '../validators/owner'
 import type { Env, Variables } from '../types'
+import { isUniqueViolation, isForeignKeyViolation } from '../lib/prismaErrors'
 
 type AppContext = Context<{ Bindings: Env; Variables: Variables }>
 
@@ -22,7 +22,7 @@ export async function createOwner(c: AppContext) {
     })
     return c.json({ owner }, 201)
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+    if (isUniqueViolation(err)) {
       return c.json({ error: 'An owner with this name already exists' }, 409)
     }
     throw err
@@ -41,7 +41,7 @@ export async function updateOwner(c: AppContext) {
     const owner = await db.owner.update({ where: { id }, data: body })
     return c.json({ owner })
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+    if (isUniqueViolation(err)) {
       return c.json({ error: 'An owner with this name already exists' }, 409)
     }
     throw err
@@ -58,7 +58,7 @@ export async function deleteOwner(c: AppContext) {
     await db.owner.delete({ where: { id } })
     return c.json({ success: true })
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && (err.code === 'P2003' || err.code === 'P2014')) {
+    if (isForeignKeyViolation(err)) {
       return c.json({ error: 'This owner is used by existing transactions. Deactivate it instead of deleting.' }, 409)
     }
     throw err

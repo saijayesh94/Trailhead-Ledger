@@ -1,12 +1,12 @@
 import type { Context } from 'hono'
 import { getCookie } from 'hono/cookie'
-import { Prisma } from '@prisma/client'
 import type { LoginInput, RegisterInput } from '../validators/auth'
 import { hashPassword, verifyPassword } from '../lib/password'
 import { createSession } from '../lib/session'
 import { SESSION_COOKIE, setSessionCookie, clearSessionCookie } from '../lib/cookies'
 import { DEFAULT_OWNERS, DEFAULT_CATEGORIES } from '../lib/seedDefaults'
 import type { Env, Variables } from '../types'
+import { isUniqueViolation } from '../lib/prismaErrors'
 
 type AppContext = Context<{ Bindings: Env; Variables: Variables }>
 
@@ -36,7 +36,7 @@ export async function registerUser(c: AppContext) {
     // concurrently instead since each is just one INSERT statement.
     user = await db.user.create({ data: { name, email, passwordHash } })
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+    if (isUniqueViolation(err)) {
       return c.json({ error: 'An account with this email already exists' }, 409)
     }
     throw err

@@ -23,6 +23,10 @@ model User {
   transfers    Transfer[]
   auditLogs    AuditLog[]
   sessions     Session[]
+  funds          Fund[]
+  fundCategories FundCategory[]
+  fundDeposits   FundDeposit[]
+  fundExpenses   FundExpense[]
 }
 
 model Session {
@@ -155,5 +159,91 @@ model AuditLog {
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([transactionId])
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Funds — standalone budgets for a trip, a family function, a construction job,
+// etc. Deliberately NOT linked to the main ledger: nothing here touches
+// Account/Owner balances or Reports. If the user wants a fund's spending in the
+// main tracker, they record a Transaction for it themselves.
+// ---------------------------------------------------------------------------
+
+model Fund {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String             // "Goa Trip", "Cousin's Wedding", "House Construction"
+  description String?
+  budget      Decimal?  @db.Decimal(15, 2)
+  startDate   DateTime
+  endDate     DateTime?
+  status      String    @default("active")   // active | closed
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deposits FundDeposit[]
+  expenses FundExpense[]
+
+  @@index([userId])
+}
+
+// Separate from Category on purpose — fund spending has its own vocabulary
+// (Stay, Tickets, Materials, Labour…) and must not clutter the main categories.
+model FundCategory {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  icon      String?
+  isDefault Boolean  @default(false)   // seeded suggestion vs user-created
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expenses FundExpense[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+// Money put into a fund
+model FundDeposit {
+  id            String   @id @default(cuid())
+  fundId        String
+  userId        String
+  amount        Decimal  @db.Decimal(15, 2)
+  date          DateTime
+  source        String             // free text: "Dad", "My savings", "Mom"
+  paymentMethod String             // cash | upi | card | bank | other
+  note          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  fund Fund @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([fundId])
+  @@index([userId])
+}
+
+// Money spent from a fund
+model FundExpense {
+  id             String   @id @default(cuid())
+  fundId         String
+  userId         String
+  amount         Decimal  @db.Decimal(15, 2)
+  date           DateTime
+  fundCategoryId String
+  paymentMethod  String            // cash | upi | card | bank | other
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  fund     Fund         @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  category FundCategory @relation(fields: [fundCategoryId], references: [id])
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([fundId])
   @@index([userId])
 }

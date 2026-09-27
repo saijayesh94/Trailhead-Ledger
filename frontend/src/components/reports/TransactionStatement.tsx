@@ -1,7 +1,8 @@
 import { useDeferredValue, useMemo, useState } from "react"
 import { formatCurrency } from "@/lib/currency"
 import { cn } from "@/lib/utils"
-import { downloadStatementCsv, downloadStatementPdf, formatStatementDate } from "@/lib/statementExport"
+import { downloadStatementCsv, downloadStatementPdf } from "@/lib/statementExport"
+import { formatDisplayDate } from "@/lib/tableExport"
 import type { StatementRow } from "@/types/report"
 import type { Account } from "@/types/account"
 import type { Category } from "@/types/category"
@@ -271,7 +272,7 @@ export function TransactionStatement({
               {pageRows.map((row) => (
                 <tr key={row.id} className="border-t hover:bg-muted/30">
                   <td className="px-3 py-2 whitespace-nowrap text-muted-foreground align-top">
-                    {formatStatementDate(row.date)}
+                    {formatDisplayDate(row.date)}
                   </td>
                   <td className="px-3 py-2 align-top">
                     <p className="font-medium break-words">{row.description}</p>

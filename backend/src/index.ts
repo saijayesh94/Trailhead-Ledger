@@ -14,6 +14,8 @@ import transactionRoutes from './routes/transactions'
 import transferRoutes from './routes/transfers'
 import dashboardRoutes from './routes/dashboard'
 import reportRoutes from './routes/reports'
+import fundRoutes from './routes/funds'
+import fundCategoryRoutes from './routes/fundCategories'
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>()
 
@@ -47,6 +49,8 @@ app.route('/api/transactions', transactionRoutes)
 app.route('/api/transfers', transferRoutes)
 app.route('/api/dashboard', dashboardRoutes)
 app.route('/api/reports', reportRoutes)
+app.route('/api/funds', fundRoutes)
+app.route('/api/fund-categories', fundCategoryRoutes)
 
 // 404
 app.notFound((c) => c.json({ error: 'Not found' }, 404))

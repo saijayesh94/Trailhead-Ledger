@@ -9,6 +9,8 @@ import Transactions from '@/pages/Transactions'
 import Accounts from '@/pages/Accounts'
 import Reports from '@/pages/Reports'
 import Settings from '@/pages/Settings'
+import Funds from '@/pages/Funds'
+import FundDetail from '@/pages/FundDetail'
 import Login from '@/pages/Login'
 import Signup from '@/pages/Signup'
 
@@ -38,6 +40,8 @@ function App() {
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/transactions" element={<Transactions />} />
+              <Route path="/funds" element={<Funds />} />
+              <Route path="/funds/:id" element={<FundDetail />} />
               <Route path="/accounts" element={<Accounts />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/settings" element={<Settings />} />

@@ -14,3 +14,17 @@ export const DEFAULT_CATEGORIES = [
   { name: 'Subscriptions', type: 'expense' },
   { name: 'Other', type: 'expense' },
 ]
+
+// Seeded lazily the first time a user opens fund categories (see
+// listFundCategories), so existing users get them without a data migration.
+export const DEFAULT_FUND_CATEGORIES = [
+  'Travel',
+  'Stay',
+  'Food',
+  'Shopping',
+  'Gifts',
+  'Tickets',
+  'Materials',
+  'Labour',
+  'Misc',
+]

@@ -8,6 +8,7 @@ import { Menu, X } from "lucide-react"
 const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/transactions", label: "Transactions" },
+  { to: "/funds", label: "Funds" },
   { to: "/accounts", label: "Accounts" },
   { to: "/reports", label: "Reports" },
   { to: "/settings", label: "Settings" },

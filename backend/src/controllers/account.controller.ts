@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client'
 import type { CreateAccountInput, UpdateAccountInput } from '../validators/account'
 import { computeAccountBalances } from '../lib/balance'
 import type { Env, Variables } from '../types'
+import { isUniqueViolation, isForeignKeyViolation } from '../lib/prismaErrors'
 
 type AppContext = Context<{ Bindings: Env; Variables: Variables }>
 
@@ -35,7 +36,7 @@ export async function createAccount(c: AppContext) {
     })
     return c.json({ account }, 201)
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+    if (isUniqueViolation(err)) {
       return c.json({ error: 'An account with this name already exists' }, 409)
     }
     throw err
@@ -54,7 +55,7 @@ export async function updateAccount(c: AppContext) {
     const account = await db.account.update({ where: { id }, data: body })
     return c.json({ account })
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+    if (isUniqueViolation(err)) {
       return c.json({ error: 'An account with this name already exists' }, 409)
     }
     throw err
@@ -71,7 +72,7 @@ export async function deleteAccount(c: AppContext) {
     await db.account.delete({ where: { id } })
     return c.json({ success: true })
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && (err.code === 'P2003' || err.code === 'P2014')) {
+    if (isForeignKeyViolation(err)) {
       return c.json({ error: 'This account is used by existing transactions or transfers. Deactivate it instead of deleting.' }, 409)
     }
     throw err
