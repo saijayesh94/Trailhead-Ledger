@@ -2,8 +2,8 @@ import { api } from "./api"
 import type { Transaction, TransactionInput, TransactionUpdate } from "@/types/transaction"
 
 export const transactionsApi = {
-  async list(): Promise<Transaction[]> {
-    const { data } = await api.get<{ transactions: Transaction[] }>("/api/transactions")
+  async list(params?: { from?: string; to?: string; ownerId?: string }): Promise<Transaction[]> {
+    const { data } = await api.get<{ transactions: Transaction[] }>("/api/transactions", { params })
     return data.transactions
   },
   async create(input: TransactionInput): Promise<Transaction> {
