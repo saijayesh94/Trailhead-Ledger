@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react"
+import { useRef, useState, type FormEvent } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -24,8 +24,12 @@ interface TransactionFormProps {
   categories: Category[]
   initial: TransactionFormValues
   submitLabel: string
-  onSubmit: (values: TransactionFormValues) => Promise<void>
+  onSubmit: (values: TransactionFormValues) => Promise<void> | void
   onCancel: () => void
+  // Quick-add mode: the parent saves in the background, so the form clears
+  // amount + description straight away (keeping type, account, owner,
+  // category and date) and puts the cursor back on amount for the next entry.
+  keepOpen?: boolean
 }
 
 export function TransactionForm({
@@ -36,10 +40,12 @@ export function TransactionForm({
   submitLabel,
   onSubmit,
   onCancel,
+  keepOpen = false,
 }: TransactionFormProps) {
   const [values, setValues] = useState(initial)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const amountRef = useRef<HTMLInputElement>(null)
 
   const categoryTypeWanted = values.type === "expense" ? "expense" : "income"
   const visibleCategories = categories.filter(
@@ -63,10 +69,17 @@ export function TransactionForm({
     setError(null)
     if (!values.amount || Number(values.amount) <= 0) {
       setError("Enter a valid amount")
+      amountRef.current?.focus()
       return
     }
     if (!values.accountId || !values.ownerId || !values.categoryId) {
       setError("Account, owner and category are required")
+      return
+    }
+    if (keepOpen) {
+      onSubmit(values)
+      setValues((prev) => ({ ...prev, amount: "", description: "" }))
+      amountRef.current?.focus()
       return
     }
     setIsSubmitting(true)
@@ -84,6 +97,7 @@ export function TransactionForm({
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="txn-amount">Amount</Label>
         <Input
+          ref={amountRef}
           id="txn-amount"
           type="number"
           min="0"

@@ -80,6 +80,10 @@ export interface FundExpenseInput {
   description?: string
 }
 
+// One row of a fund's single list: money received into it or spent from it.
+// Stored as deposits and expenses; the fund page shows them together.
+export type FundEntry = { kind: "received"; data: FundDeposit } | { kind: "spent"; data: FundExpense }
+
 export interface FundDetail {
   fund: Fund
   deposits: FundDeposit[]

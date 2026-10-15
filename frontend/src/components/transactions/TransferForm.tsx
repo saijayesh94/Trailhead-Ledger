@@ -19,7 +19,7 @@ interface TransferFormProps {
   accounts: Account[]
   owners: Owner[]
   initial: TransferFormValues
-  onSubmit: (values: TransferFormValues) => Promise<void>
+  onSubmit: (values: TransferFormValues) => Promise<void> | void
   onCancel: () => void
 }
 

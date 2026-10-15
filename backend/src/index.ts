@@ -12,6 +12,7 @@ import ownerRoutes from './routes/owners'
 import categoryRoutes from './routes/categories'
 import transactionRoutes from './routes/transactions'
 import transferRoutes from './routes/transfers'
+import ledgerRoutes from './routes/ledger'
 import dashboardRoutes from './routes/dashboard'
 import reportRoutes from './routes/reports'
 import fundRoutes from './routes/funds'
@@ -47,6 +48,7 @@ app.route('/api/owners', ownerRoutes)
 app.route('/api/categories', categoryRoutes)
 app.route('/api/transactions', transactionRoutes)
 app.route('/api/transfers', transferRoutes)
+app.route('/api/ledger', ledgerRoutes)
 app.route('/api/dashboard', dashboardRoutes)
 app.route('/api/reports', reportRoutes)
 app.route('/api/funds', fundRoutes)

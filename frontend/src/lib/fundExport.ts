@@ -1,6 +1,6 @@
-import type { Fund, FundExpense } from "@/types/fund"
+import type { Fund, FundEntry } from "@/types/fund"
 import { downloadCsv, downloadTablePdf, formatDisplayDate, formatExportAmount } from "@/lib/tableExport"
-import { formatFundDateRange, fundDate } from "@/lib/funds"
+import { formatFundDateRange, fundDate, fundEntryLabel, fundEntryNote, fundEntrySignedAmount } from "@/lib/funds"
 import { paymentMethodLabel } from "@/lib/paymentMethods"
 
 export interface FundExportMeta {
@@ -9,33 +9,36 @@ export interface FundExportMeta {
   filters: string[]
 }
 
-const HEADER = ["Date", "Description", "Category", "Paid via", "Amount"]
+const HEADER = ["Date", "Type", "Description", "Category / From", "Via", "Amount"]
 
 function exportFilename(fund: Fund, ext: string): string {
   const slug = fund.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "fund"
   return `trailhead-fund-${slug}.${ext}`
 }
 
-function rowCells(expense: FundExpense, date: string, amount: string): string[] {
+function rowCells(entry: FundEntry, date: string, amount: string): string[] {
   return [
     date,
-    expense.description ?? "",
-    expense.category.name,
-    paymentMethodLabel(expense.paymentMethod),
+    entry.kind === "spent" ? "Spent" : "Received",
+    fundEntryNote(entry) ?? "",
+    fundEntryLabel(entry),
+    paymentMethodLabel(entry.data.paymentMethod),
     amount,
   ]
 }
 
-export function downloadFundExpensesCsv(expenses: FundExpense[], { fund }: FundExportMeta) {
+// Amounts are signed: received positive, spent negative
+export function downloadFundEntriesCsv(entries: FundEntry[], { fund }: FundExportMeta) {
   downloadCsv(
     exportFilename(fund, "csv"),
     HEADER,
-    expenses.map((e) => rowCells(e, fundDate(e.date), Number(e.amount).toFixed(2)))
+    entries.map((e) => rowCells(e, fundDate(e.data.date), fundEntrySignedAmount(e).toFixed(2)))
   )
 }
 
-export async function downloadFundExpensesPdf(expenses: FundExpense[], { fund, filters }: FundExportMeta) {
-  const listedTotal = expenses.reduce((sum, e) => sum + Number(e.amount), 0)
+export async function downloadFundEntriesPdf(entries: FundEntry[], { fund, filters }: FundExportMeta) {
+  const sum = (kind: FundEntry["kind"]) =>
+    entries.filter((e) => e.kind === kind).reduce((total, e) => total + Number(e.data.amount), 0)
 
   await downloadTablePdf({
     filename: exportFilename(fund, "pdf"),
@@ -43,23 +46,31 @@ export async function downloadFundExpensesPdf(expenses: FundExpense[], { fund, f
     subtitle: formatFundDateRange(fund) + (fund.status === "closed" ? " (closed)" : ""),
     filters,
     summary: {
-      head: ["Budget", "Total Received", "Total Spent", "In Hand", "Listed Expenses"],
+      head: ["Budget", "Total Received", "Total Spent", "In Hand", "Listed Received", "Listed Spent"],
       body: [
         fund.budget ? formatExportAmount(Number(fund.budget)) : "-",
         formatExportAmount(Number(fund.totalDeposited)),
         formatExportAmount(Number(fund.totalSpent)),
         formatExportAmount(Number(fund.remaining)),
-        formatExportAmount(listedTotal),
+        formatExportAmount(sum("received")),
+        formatExportAmount(sum("spent")),
       ],
     },
     table: {
       head: HEADER.map((h) => (h === "Amount" ? "Amount (INR)" : h)),
-      body: expenses.map((e) => rowCells(e, formatDisplayDate(fundDate(e.date)), formatExportAmount(Number(e.amount)))),
-      emptyMessage: "No expenses match the selected filters",
+      body: entries.map((e) => {
+        const amount = fundEntrySignedAmount(e)
+        return rowCells(
+          e,
+          formatDisplayDate(fundDate(e.data.date)),
+          `${amount < 0 ? "-" : "+"}${formatExportAmount(Math.abs(amount))}`
+        )
+      }),
+      emptyMessage: "No entries match the selected filters",
       columnStyles: {
         0: { cellWidth: 70 },
-        1: { cellWidth: "auto" },
-        4: { halign: "right", fontStyle: "bold" },
+        2: { cellWidth: "auto" },
+        5: { halign: "right", fontStyle: "bold" },
       },
     },
   })

@@ -1,5 +1,5 @@
 import { formatDisplayDate } from "@/lib/tableExport"
-import type { FundRecord, FundInput, FundUpdate } from "@/types/fund"
+import type { FundEntry, FundRecord, FundInput, FundUpdate } from "@/types/fund"
 import type { FundFormValues } from "@/components/funds/FundForm"
 
 // Fund dates are stored as midnight UTC; the first 10 chars are the calendar date.
@@ -42,4 +42,20 @@ export function formValuesToUpdateInput(values: FundFormValues): FundUpdate {
     startDate: values.startDate,
     endDate: values.endDate || null,
   }
+}
+
+// Category for money spent, source ("Dad", "My savings") for money received
+export function fundEntryLabel(entry: FundEntry): string {
+  return entry.kind === "spent" ? entry.data.category.name : entry.data.source
+}
+
+// The expense description or the deposit note
+export function fundEntryNote(entry: FundEntry): string | null {
+  return entry.kind === "spent" ? entry.data.description : entry.data.note
+}
+
+// Received counts up, spent counts down
+export function fundEntrySignedAmount(entry: FundEntry): number {
+  const amount = Number(entry.data.amount)
+  return entry.kind === "spent" ? -amount : amount
 }

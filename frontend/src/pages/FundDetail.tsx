@@ -4,27 +4,33 @@ import { fundsApi } from "@/services/funds"
 import { fundCategoriesApi } from "@/services/fundCategories"
 import { getErrorMessage } from "@/services/api"
 import { formatCurrency } from "@/lib/currency"
-import { toISODate } from "@/lib/date"
 import { cn } from "@/lib/utils"
 import { formatFundDateRange, formValuesToUpdateInput, fundToFormValues } from "@/lib/funds"
-import type { Fund, FundCategory, FundDeposit, FundDepositInput, FundExpense, FundRecord } from "@/types/fund"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import type { Fund, FundCategory, FundDeposit, FundEntry, FundExpense, FundRecord } from "@/types/fund"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { FundForm, type FundFormValues } from "@/components/funds/FundForm"
-import { FundBudgetBar } from "@/components/funds/FundBudgetBar"
-import { FundExpenseForm, type FundExpenseFormValues } from "@/components/funds/FundExpenseForm"
-import { FundExpenseTable } from "@/components/funds/FundExpenseTable"
-import { FundDeposits } from "@/components/funds/FundDeposits"
-import { FundBreakdown } from "@/components/funds/FundBreakdown"
+import { FundEntryTable } from "@/components/funds/FundEntryTable"
+import type { FundEntryFormValues } from "@/components/funds/FundEntryForm"
 import { ArrowLeft, Lock, LockOpen, Pencil, Trash2 } from "lucide-react"
 
-function toExpenseInput(values: FundExpenseFormValues) {
+function toExpenseInput(values: FundEntryFormValues) {
   return {
     amount: Number(values.amount),
     fundCategoryId: values.fundCategoryId,
     paymentMethod: values.paymentMethod,
     description: values.description.trim() || undefined,
+    date: values.date,
+  }
+}
+
+function toDepositInput(values: FundEntryFormValues) {
+  return {
+    amount: Number(values.amount),
+    source: values.source.trim(),
+    paymentMethod: values.paymentMethod,
+    note: values.description.trim() || undefined,
     date: values.date,
   }
 }
@@ -83,6 +89,14 @@ export default function FundDetail() {
     }
   }, [fundRecord, deposits, expenses])
 
+  const entries = useMemo<FundEntry[]>(
+    () => [
+      ...deposits.map((data) => ({ kind: "received" as const, data })),
+      ...expenses.map((data) => ({ kind: "spent" as const, data })),
+    ],
+    [deposits, expenses]
+  )
+
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading fund...</p>
 
   if (!fund) {
@@ -101,7 +115,6 @@ export default function FundDetail() {
   const spent = Number(fund.totalSpent)
   const deposited = Number(fund.totalDeposited)
   const remaining = Number(fund.remaining)
-  const activeCategories = categories.filter((c) => c.isActive)
 
   async function handleUpdateFund(values: FundFormValues) {
     const updated = await fundsApi.update(fundId, formValuesToUpdateInput(values))
@@ -129,51 +142,48 @@ export default function FundDetail() {
     }
   }
 
-  async function handleAddExpense(values: FundExpenseFormValues) {
-    const created = await fundsApi.createExpense(fundId, toExpenseInput(values))
-    setExpenses((prev) => [created, ...prev])
-  }
-
-  async function handleUpdateExpense(expenseId: string, values: FundExpenseFormValues) {
-    const updated = await fundsApi.updateExpense(fundId, expenseId, toExpenseInput(values))
-    setExpenses((prev) => prev.map((e) => (e.id === expenseId ? updated : e)))
-  }
-
-  async function handleDeleteExpense(expense: FundExpense) {
-    if (!confirm(`Delete this ${formatCurrency(expense.amount, "INR")} expense?`)) return
-    setError(null)
-    try {
-      await fundsApi.removeExpense(fundId, expense.id)
-      setExpenses((prev) => prev.filter((e) => e.id !== expense.id))
-    } catch (err) {
-      setError(getErrorMessage(err, "Could not delete expense"))
-    }
-  }
-
   function rememberSource(source: string) {
     setSources((prev) => (prev.includes(source) ? prev : [...prev, source].sort((a, b) => a.localeCompare(b))))
   }
 
-  async function handleCreateDeposit(input: FundDepositInput) {
-    const created = await fundsApi.createDeposit(fundId, input)
-    setDeposits((prev) => [created, ...prev])
-    rememberSource(created.source)
+  async function handleCreateEntry(values: FundEntryFormValues) {
+    if (values.kind === "spent") {
+      const created = await fundsApi.createExpense(fundId, toExpenseInput(values))
+      setExpenses((prev) => [created, ...prev])
+    } else {
+      const created = await fundsApi.createDeposit(fundId, toDepositInput(values))
+      setDeposits((prev) => [created, ...prev])
+      rememberSource(created.source)
+    }
   }
 
-  async function handleUpdateDeposit(depositId: string, input: FundDepositInput) {
-    const updated = await fundsApi.updateDeposit(fundId, depositId, input)
-    setDeposits((prev) => prev.map((d) => (d.id === depositId ? updated : d)))
-    rememberSource(updated.source)
+  async function handleUpdateEntry(entry: FundEntry, values: FundEntryFormValues) {
+    if (entry.kind === "spent") {
+      const updated = await fundsApi.updateExpense(fundId, entry.data.id, toExpenseInput(values))
+      setExpenses((prev) => prev.map((e) => (e.id === updated.id ? updated : e)))
+    } else {
+      const updated = await fundsApi.updateDeposit(fundId, entry.data.id, toDepositInput(values))
+      setDeposits((prev) => prev.map((d) => (d.id === updated.id ? updated : d)))
+      rememberSource(updated.source)
+    }
   }
 
-  async function handleDeleteDeposit(deposit: FundDeposit) {
-    if (!confirm(`Delete the ${formatCurrency(deposit.amount, "INR")} from ${deposit.source}?`)) return
+  async function handleDeleteEntry(entry: FundEntry) {
+    const amount = formatCurrency(entry.data.amount, "INR")
+    const message =
+      entry.kind === "spent" ? `Delete this ${amount} expense?` : `Delete the ${amount} from ${entry.data.source}?`
+    if (!confirm(message)) return
     setError(null)
     try {
-      await fundsApi.removeDeposit(fundId, deposit.id)
-      setDeposits((prev) => prev.filter((d) => d.id !== deposit.id))
+      if (entry.kind === "spent") {
+        await fundsApi.removeExpense(fundId, entry.data.id)
+        setExpenses((prev) => prev.filter((e) => e.id !== entry.data.id))
+      } else {
+        await fundsApi.removeDeposit(fundId, entry.data.id)
+        setDeposits((prev) => prev.filter((d) => d.id !== entry.data.id))
+      }
     } catch (err) {
-      setError(getErrorMessage(err, "Could not delete deposit"))
+      setError(getErrorMessage(err, "Could not delete entry"))
     }
   }
 
@@ -232,58 +242,15 @@ export default function FundDetail() {
         />
       </div>
 
-      {fund.budget && <FundBudgetBar spent={spent} budget={Number(fund.budget)} />}
-
-      <Card className="gap-4">
-        <CardHeader>
-          <CardTitle>Add Expense</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isClosed ? (
-            <p className="text-sm text-muted-foreground">This fund is closed. Reopen it to add expenses.</p>
-          ) : activeCategories.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No active fund categories.{" "}
-              <Link to="/settings" className="underline">
-                Add one in Settings
-              </Link>{" "}
-              first.
-            </p>
-          ) : (
-            <FundExpenseForm
-              categories={categories}
-              initial={{
-                amount: "",
-                fundCategoryId: activeCategories[0].id,
-                paymentMethod: "upi",
-                description: "",
-                date: toISODate(),
-              }}
-              submitLabel="Add"
-              onSubmit={handleAddExpense}
-              keepOpen
-            />
-          )}
-        </CardContent>
-      </Card>
-
-      <FundExpenseTable
+      <FundEntryTable
         fund={fund}
-        expenses={expenses}
+        entries={entries}
         categories={categories}
-        onUpdate={handleUpdateExpense}
-        onDelete={handleDeleteExpense}
-      />
-
-      <FundBreakdown expenses={expenses} />
-
-      <FundDeposits
-        deposits={deposits}
         sources={sources}
-        canAdd={!isClosed}
-        onCreate={handleCreateDeposit}
-        onUpdate={handleUpdateDeposit}
-        onDelete={handleDeleteDeposit}
+        addBlockedReason={isClosed ? "This fund is closed. Reopen it to add entries." : null}
+        onCreate={handleCreateEntry}
+        onUpdate={handleUpdateEntry}
+        onDelete={handleDeleteEntry}
       />
     </div>
   )

@@ -4,7 +4,7 @@ import type { Env, Variables } from '../types'
 
 type AppContext = Context<{ Bindings: Env; Variables: Variables }>
 
-const TRANSFER_INCLUDE = {
+export const TRANSFER_INCLUDE = {
   fromAccount: { select: { id: true, name: true, currency: true } },
   toAccount: { select: { id: true, name: true, currency: true } },
   owner: { select: { id: true, name: true, color: true } },

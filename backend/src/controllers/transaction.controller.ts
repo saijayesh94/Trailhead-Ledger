@@ -6,7 +6,7 @@ import type { Env, Variables } from '../types'
 
 type AppContext = Context<{ Bindings: Env; Variables: Variables }>
 
-const TRANSACTION_INCLUDE = {
+export const TRANSACTION_INCLUDE = {
   account: { select: { id: true, name: true, currency: true } },
   owner: { select: { id: true, name: true, color: true } },
   category: { select: { id: true, name: true, type: true } },
